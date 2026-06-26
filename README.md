@@ -1,38 +1,100 @@
 # PayPulse Banking System
 
-PayPulse is a professional digital banking platform built with a high-fidelity React + Vite frontend and a Python Flask backend. It is designed to demonstrate key Data Structures and Algorithms (DSA) concepts in an academic context while presenting a premium, glassmorphic visual aesthetic.
+PayPulse is a professional digital banking platform built with a **React + Vite** frontend and a **Python Flask** backend. It demonstrates key Data Structures & Algorithms (DSA) concepts in an academic context while presenting a premium enterprise-grade visual aesthetic.
+
+> **Single entry point:** `http://localhost:5000` — Flask serves both the REST API and the built React SPA from the same port.
 
 ---
 
-## 🚀 Core DSA Implementation
+## 🚀 Quick Start
 
-The system utilizes custom-implemented Python data structures in the backend to manage core banking flows. These structures are synchronized with the SQLite database on startup:
+### Windows
+```powershell
+.\run.bat
+```
 
-### 1. Stack (LIFO) → Transaction Reversals
-* **Class**: `TransactionStack` in [dsa.py](file:///c:/Users/sanja/OneDrive/Documents/Github/Banking%20System%20Website/backend/models/dsa.py)
-* **Usage**: The last 100 successful transactions are loaded into an in-memory stack. If a system administrator triggers an "Undo Last Action" in the Admin Panel, the top transaction is popped and its financial effects (debits/credits) are rolled back in the database and caches.
+### Linux / macOS
+```bash
+chmod +x run.sh
+./run.sh
+```
 
-### 2. Queue (FIFO) → Transaction Approval Pipeline
-* **Class**: `PendingTransactionQueue` in [dsa.py](file:///c:/Users/sanja/OneDrive/Documents/Github/Banking%20System%20Website/backend/models/dsa.py)
-* **Usage**: When a user makes a transfer choosing "Standard Processing (Queued)", the transaction request is enqueued. Available balance is reserved, but the current balance remains unchanged until an administrator approves and processes the queue item in first-in, first-out order.
-
-### 3. Dictionary → Fast Account Lookup
-* **Class**: `AccountDictionary` in [dsa.py](file:///c:/Users/sanja/OneDrive/Documents/Github/Banking%20System%20Website/backend/models/dsa.py)
-* **Usage**: Maps `account_number -> account_data` for O(1) in-memory lookups. This cache is automatically populated on server boot and is updated in real-time on every transaction, reducing repetitive database queries on hot paths.
-
-### 4. Custom List Sorting → QuickSort for Logs
-* **Function**: `quicksort_transactions` in [dsa.py](file:///c:/Users/sanja/OneDrive/Documents/Github/Banking%20System%20Website/backend/models/dsa.py)
-* **Usage**: Transaction histories are stored in standard Python lists. Before sending transaction logs to the client, the backend sorts them in-memory using a custom QuickSort implementation supporting multiple keys (e.g., date, amount) and sort orders.
+Both scripts automatically:
+1. Detect Python and create / reuse a `.venv` virtual environment
+2. Install backend Python dependencies from `requirements.txt`
+3. Install frontend npm packages (only on first run)
+4. **Build the React app** (`npm run build` → `frontend/dist/`)
+5. Launch Flask at **http://localhost:5000** and open your browser
 
 ---
 
-## 🎨 UI & UX Features
+## 🛠️ Manual Setup
 
-* **Glassmorphic Theme**: Dark Obsidian theme (default) and Alpine Light theme styled with custom CSS variables, gradients, and backdrop blur.
-* **3D Virtual Cards**: Fully interactive CSS-transformed debit cards that flip dynamically to reveal CVV and card numbers, with a freeze toggle that frosts the card face and limit sliders.
-* **Responsive Layouts**: Collapsible sidebar navigation for desktop screens and a floating mobile navigation bar for touchscreens.
-* **Avatar Customization**: Real-time avatar selection and settings panel.
-* **Interactive Dashboard**: Quick-transfer tools, real-time Zakat calculations with toggle controls, and spent-category meters.
+### Prerequisites
+- Python 3.9+
+- Node.js 18+ & NPM
+
+### Backend
+```bash
+# From the project root
+python -m venv .venv
+.venv\Scripts\activate          # Windows
+# source .venv/bin/activate     # Linux / macOS
+pip install -r backend/requirements.txt
+```
+
+### Frontend
+```bash
+cd frontend
+npm install
+npm run build          # Compiles React → frontend/dist/  (served by Flask)
+```
+
+### Run the Application
+```bash
+# From the project root (with .venv activated)
+python -m backend.main
+# → http://localhost:5000
+```
+
+### Development Mode (Hot-Reload)
+Run both services in parallel for instant frontend hot-reload:
+
+```bash
+# Terminal 1 – Flask API
+python -m backend.main
+
+# Terminal 2 – Vite dev server (proxies /api → localhost:5000)
+cd frontend
+npm run dev
+# → http://localhost:5173  (all API calls forwarded to Flask automatically)
+```
+
+---
+
+## 🧠 DSA Implementation
+
+| Structure | Class | Usage |
+|---|---|---|
+| **Stack (LIFO)** | `TransactionStack` in `backend/models/dsa.py` | Last 100 transactions are pushed onto the stack. Admin "Undo" pops the top and rolls back its financial effect. |
+| **Queue (FIFO)** | `PendingTransactionQueue` in `backend/models/dsa.py` | "Standard" transfers are enqueued. Available balance is reserved until an admin approves the item in FIFO order. |
+| **Dictionary** | `AccountDictionary` in `backend/models/dsa.py` | `account_number → account_data` O(1) in-memory cache, populated on boot and kept in sync on every transaction. |
+| **QuickSort** | `quicksort_transactions` in `backend/models/dsa.py` | Transaction histories are sorted in-memory using a custom QuickSort before being returned to the client. |
+
+---
+
+## 🎨 UI Features
+
+- **Corporate Light** theme by default (Dark mode toggle available)
+- Recharts-powered spend analytics and monthly summary charts
+- 2D virtual debit card widget with freeze/unfreeze toggle
+- Searchable & sortable transaction ledger
+- Zakat calculator (savings accounts only — 2.5% at ≥ PKR 100,000 Nisab)
+- Admin Panel: Queue Manager, Undo Stack, Dictionary User Lookup, System Logs
+- Beneficiary manager with add/delete
+- Responsive: desktop sidebar + mobile bottom navigation bar
+- CNIC & mobile number format validation (Pakistani format)
+- PKR currency formatting throughout
 
 ---
 
@@ -40,83 +102,74 @@ The system utilizes custom-implemented Python data structures in the backend to 
 
 ```
 PayPulse/
-├── README.md                  # Project documentation
-├── run.bat                    # Setup and execution runner script
-├── backend/                   # Python Flask API & DSA backend
-│   ├── main.py               # Application entry point & static serving
-│   ├── requirements.txt       # Python package requirements
+├── run.bat                    # Windows one-click setup & launcher
+├── run.sh                     # Linux / macOS one-click setup & launcher
+├── README.md
+├── banking.db                 # SQLite database (auto-created on first run)
+├── backend/
+│   ├── main.py                # Flask app factory, static serving, port 5000
+│   ├── requirements.txt
 │   ├── database/
 │   │   └── db.py              # SQLite schema, tables & admin seed
 │   ├── models/
 │   │   └── dsa.py             # Stack, Queue, Dictionary & QuickSort
 │   ├── routes/
-│   │   ├── auth_routes.py     # Login, Signup (CNIC/Mobile validation)
-│   │   ├── banking_routes.py  # User actions, deposits, zakat toggles
-│   │   └── admin_routes.py    # Admin actions, freeze, queue, undo
+│   │   ├── auth_routes.py     # /api/auth/* — Login, Signup, CNIC validation
+│   │   ├── banking_routes.py  # /api/* — Transfers, Bills, Zakat, Cards
+│   │   └── admin_routes.py    # /api/admin/* — Freeze, Queue, Undo
 │   ├── services/
-│   │   └── banking_service.py # Core transaction mechanics & stack/queue drivers
+│   │   └── banking_service.py # Core transaction mechanics & DSA drivers
 │   └── utils/
-│       └── helpers.py         # Card generation, CNIC & Mobile regex format checks
-└── frontend/                  # React Single Page App
-    ├── package.json           # Frontend packages
-    ├── vite.config.js         # Proxy configurations for /api
-    ├── index.html             # HTML mounting index
+│       └── helpers.py         # Card generation, CNIC/mobile regex helpers
+└── frontend/
+    ├── package.json
+    ├── vite.config.js          # Build → dist/, dev proxy → localhost:5000
+    ├── index.html
     └── src/
-        ├── main.jsx           # React app mount
-        ├── App.jsx            # Routing and toast controls
-        ├── index.css          # Styling system & glassmorphism variables
-        └── components/        # Modulized UI sections
-            ├── Dashboard.jsx  # Overview, spend meters, filterable lists
-            ├── Transfer.jsx   # Standard vs Express transfers & beneficiaries
-            ├── BillPay.jsx    # Utilities invoicing
-            ├── VirtualCards.jsx # 3D flip card graphic, limit control
-            ├── ProfileSettings.jsx # User security & profile
-            ├── AdminPanel.jsx # Queue process, Stack undo, Account freeze controls
-            ├── Sidebar.jsx    # Fluid side nav
-            └── LandingPage.jsx# Interactive bank value showcase
-```
-
----
-
-## 🛠️ Installation & Execution
-
-### Prerequisites
-* **Python 3.x**
-* **Node.js & NPM**
-
-### The Quick Start Runner (Windows)
-1. Clone or copy the project into a folder.
-2. Double-click the [run.bat](file:///c:/Users/sanja/OneDrive/Documents/Github/Banking%20System%20Website/run.bat) file or execute it in your VS Code terminal:
-   ```powershell
-   .\run.bat
-   ```
-   *This script automatically configures the Python virtual environment (`.venv`), installs dependencies, installs frontend packages, compiles the React assets, launches the local server, and launches your browser at `http://localhost:5000`.*
-
-### Manual Installation (Cross-Platform)
-
-#### 1. Setup Backend
-```bash
-# Navigate to the root directory
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -r backend/requirements.txt
-python -m backend.main
-```
-
-#### 2. Setup Frontend
-```bash
-cd frontend
-npm install
-npm run build   # Build dist folder served by Flask
-# OR for live reloading frontend:
-npm run dev     # Starts dev server on port 5173
+        ├── main.jsx
+        ├── App.jsx             # Routing, session restore, toast system
+        ├── index.css           # Corporate design system & CSS variables
+        └── components/
+            ├── Sidebar.jsx         # Fixed nav + mobile bottom bar
+            ├── common/             # 15 reusable UI primitives
+            ├── dashboard/          # 8 modular dashboard widgets
+            ├── admin/              # 5 admin DSA control widgets
+            ├── bills/              # Bill card & add-bill form
+            ├── transfer/           # Transfer form, beneficiaries, success screen
+            ├── settings/           # Profile, security & picture uploader
+            └── pages/              # 8 page entry points (imported by App.jsx)
+                ├── LandingPage.jsx
+                ├── LoginSignup.jsx
+                ├── Dashboard.jsx
+                ├── Transfer.jsx
+                ├── BillPay.jsx
+                ├── VirtualCards.jsx
+                ├── ProfileSettings.jsx
+                └── AdminPanel.jsx
 ```
 
 ---
 
 ## 🛡️ Sandbox Credentials
-* **User Accounts**: Register any user account to test Checking (PKR 5,000 pre-seeded), Savings (PKR 10,000 pre-seeded), and Credit cards.
-* **Pre-Seeded Administrator Account**:
-  * **Email**: `admin@paypulse.pk`
-  * **Password**: `admin123`
-  * *Use this account to access the Admin Dashboard to test transaction undos (Stack), pending requests processing (Queue), and lock/unlock client accounts.*
+
+| Role | Email | Password |
+|---|---|---|
+| **Admin** | `admin@paypulse.pk` | `admin123` |
+| **User** | Register any new account | — |
+
+- New users are automatically seeded with a Checking account (PKR 5,000) and a Savings account (PKR 10,000).
+- Use the Admin account to test the Queue processor, Undo Stack, and account freeze controls.
+
+---
+
+## ⚙️ Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `PAYPULSE_HOST` | `127.0.0.1` | Host interface for Flask |
+| `PAYPULSE_PORT` | `5000` | Port for Flask (and the app entry point) |
+
+```bash
+# Example: bind to all interfaces for LAN access
+PAYPULSE_HOST=0.0.0.0 python -m backend.main
+```

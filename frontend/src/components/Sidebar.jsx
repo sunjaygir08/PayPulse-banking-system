@@ -1,5 +1,6 @@
 import React from 'react';
 import { LayoutDashboard, Send, Receipt, CreditCard, UserCog, LogOut, Moon, Sun, ShieldCheck } from 'lucide-react';
+import Logo from './common/Logo';
 
 export default function Sidebar({ activeTab, setActiveTab, onLogout, user, theme, toggleTheme }) {
   const menuItems = [
@@ -10,75 +11,94 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, user, theme
     { id: 'settings', label: 'Settings', icon: UserCog },
   ];
 
-  // If the user has admin role, add the Admin Panel tab
   if (user && user.is_admin === 1) {
     menuItems.push({ id: 'admin', label: 'Admin Panel', icon: ShieldCheck });
   }
 
+  const getInitials = () => {
+    if (!user?.full_name) return 'PB';
+    const parts = user.full_name.split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return user.full_name.substr(0, 2).toUpperCase();
+  };
+
   return (
     <>
-      {/* Desktop Sidebar */}
-      <aside className="glass-card" style={{
-        position: 'fixed',
-        left: '20px',
-        top: '20px',
-        bottom: '20px',
-        width: 'var(--sidebar-width)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        padding: '30px 20px',
-        borderRadius: '24px',
-        zIndex: 100,
-      }}>
+      {/* Desktop Sidebar (Corporate Navy) */}
+      <aside 
+        style={{
+          position: 'fixed',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: 'var(--sidebar-width)',
+          backgroundColor: 'var(--sidebar-bg)',
+          color: 'var(--sidebar-text)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: '30px 20px',
+          zIndex: 100,
+          borderRight: '1px solid rgba(255,255,255,0.05)'
+        }}
+      >
         <div>
-          {/* Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '40px', paddingLeft: '10px' }}>
-            <div style={{
-              background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))',
-              width: '28px',
-              height: '28px',
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontWeight: 'bold',
-              fontFamily: 'var(--font-mono)'
-            }}>P</div>
-            <span style={{ fontSize: '1.15rem', fontWeight: 800, letterSpacing: '-0.5px', fontFamily: 'var(--font-mono)' }}>
-              Pay<span className="gradient-text">Pulse</span>
-            </span>
+          {/* Custom Banking Logo */}
+          <div style={{ marginBottom: '40px', paddingLeft: '10px', color: '#ffffff' }}>
+            <Logo showText={true} size={28} />
           </div>
 
-          {/* User info brief */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '12px', 
-            marginBottom: '30px', 
-            padding: '10px',
-            borderRadius: '12px',
-            background: 'var(--input-bg)',
-            border: '1px solid var(--card-border)'
-          }}>
-            <img 
-              src={user?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60'} 
-              alt="Avatar" 
-              style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }}
-            />
+          {/* User profile brief card */}
+          <div 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px', 
+              marginBottom: '30px', 
+              padding: '12px',
+              borderRadius: '12px',
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(255, 255, 255, 0.05)'
+            }}
+          >
+            {user?.avatar_url ? (
+              <img 
+                src={user.avatar_url} 
+                alt="Avatar" 
+                style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }}
+              />
+            ) : (
+              <div 
+                style={{ 
+                  width: '36px', 
+                  height: '36px', 
+                  borderRadius: '50%', 
+                  backgroundColor: 'var(--brand-accent)', 
+                  color: '#0f172a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.85rem',
+                  fontWeight: 700
+                }}
+              >
+                {getInitials()}
+              </div>
+            )}
             <div style={{ overflow: 'hidden' }}>
-              <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+              <p style={{ fontSize: '0.82rem', fontWeight: 600, color: '#ffffff', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden', margin: 0 }}>
                 {user?.full_name}
               </p>
-              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                {user?.is_admin === 1 ? 'Administrator' : 'Sandbox Account'}
+              <p style={{ fontSize: '0.68rem', color: 'var(--sidebar-text-muted)', margin: 0 }}>
+                {user?.is_admin === 1 ? 'System Admin' : 'Customer Account'}
               </p>
             </div>
           </div>
 
           {/* Navigation Links */}
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -90,20 +110,21 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, user, theme
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
-                    padding: '12px 16px',
+                    padding: '11px 16px',
                     width: '100%',
                     border: 'none',
-                    borderRadius: '12px',
-                    background: isActive ? 'var(--sidebar-active)' : 'transparent',
-                    color: isActive ? 'var(--brand-primary)' : 'var(--text-secondary)',
+                    borderRadius: '10px',
+                    background: isActive ? 'var(--sidebar-active-bg)' : 'transparent',
+                    color: isActive ? 'var(--sidebar-active-text)' : 'var(--sidebar-text-muted)',
                     fontWeight: isActive ? 600 : 500,
-                    fontSize: '0.95rem',
+                    fontSize: '0.9rem',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
+                    transition: 'all 0.15s ease',
+                    textAlign: 'left'
                   }}
                   className="nav-btn"
                 >
-                  <Icon size={18} style={{ color: isActive ? 'var(--brand-primary)' : 'var(--text-muted)' }} />
+                  <Icon size={18} style={{ color: isActive ? 'var(--brand-primary)' : 'var(--sidebar-text-muted)', opacity: isActive ? 1 : 0.7 }} />
                   {item.label}
                 </button>
               );
@@ -112,25 +133,26 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, user, theme
         </div>
 
         {/* Footer Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <button
             onClick={toggleTheme}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '12px',
-              padding: '12px 16px',
+              padding: '10px 16px',
               width: '100%',
               border: 'none',
-              borderRadius: '12px',
+              borderRadius: '10px',
               background: 'transparent',
-              color: 'var(--text-secondary)',
+              color: 'var(--sidebar-text-muted)',
               fontWeight: 500,
-              fontSize: '0.95rem',
+              fontSize: '0.9rem',
               cursor: 'pointer',
+              textAlign: 'left'
             }}
           >
-            {theme === 'dark' ? <Sun size={18} style={{ color: 'var(--text-muted)' }} /> : <Moon size={18} style={{ color: 'var(--text-muted)' }} />}
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
           </button>
 
@@ -140,15 +162,16 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, user, theme
               display: 'flex',
               alignItems: 'center',
               gap: '12px',
-              padding: '12px 16px',
+              padding: '10px 16px',
               width: '100%',
               border: 'none',
-              borderRadius: '12px',
+              borderRadius: '10px',
               background: 'transparent',
-              color: 'var(--expense-red)',
+              color: 'var(--expense-color)',
               fontWeight: 500,
-              fontSize: '0.95rem',
+              fontSize: '0.9rem',
               cursor: 'pointer',
+              textAlign: 'left'
             }}
           >
             <LogOut size={18} />
@@ -157,20 +180,25 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, user, theme
         </div>
       </aside>
 
-      {/* Mobile Floating Nav Bar */}
-      <nav className="glass-card mobile-nav" style={{
-        position: 'fixed',
-        left: '10px',
-        right: '10px',
-        bottom: '10px',
-        height: '64px',
-        display: 'none',
-        alignItems: 'center',
-        justifyContent: 'space-around',
-        borderRadius: '20px',
-        padding: '0 10px',
-        zIndex: 1000
-      }}>
+      {/* Mobile Sticky Bottom Nav Bar */}
+      <nav 
+        className="mobile-nav" 
+        style={{
+          position: 'fixed',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: '60px',
+          backgroundColor: 'var(--sidebar-bg)',
+          color: 'var(--sidebar-text)',
+          display: 'none',
+          alignItems: 'center',
+          justifyContent: 'space-around',
+          padding: '0 10px',
+          zIndex: 1000,
+          borderTop: '1px solid rgba(255,255,255,0.05)'
+        }}
+      >
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -183,16 +211,16 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, user, theme
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '4px',
+                gap: '2px',
                 border: 'none',
                 background: 'transparent',
-                color: isActive ? 'var(--brand-primary)' : 'var(--text-muted)',
+                color: isActive ? 'var(--sidebar-active-text)' : 'var(--sidebar-text-muted)',
                 cursor: 'pointer',
                 fontSize: '0.65rem',
                 fontWeight: isActive ? 600 : 500
               }}
             >
-              <Icon size={20} />
+              <Icon size={18} style={{ color: isActive ? 'var(--brand-primary)' : 'var(--sidebar-text-muted)' }} />
               <span>{item.label}</span>
             </button>
           );
@@ -204,20 +232,19 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, user, theme
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '4px',
+            gap: '2px',
             border: 'none',
             background: 'transparent',
-            color: 'var(--expense-red)',
+            color: 'var(--expense-color)',
             cursor: 'pointer',
             fontSize: '0.65rem'
           }}
         >
-          <LogOut size={20} />
-          <span>Out</span>
+          <LogOut size={18} />
+          <span>Exit</span>
         </button>
       </nav>
 
-      {/* Inline styles to display mobile navigation appropriately based on screen width */}
       <style>{`
         @media (max-width: 1024px) {
           aside { display: none !important; }
