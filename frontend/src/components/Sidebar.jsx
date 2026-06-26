@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Send, Receipt, CreditCard, UserCog, LogOut, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, Send, Receipt, CreditCard, UserCog, LogOut, Moon, Sun, ShieldCheck } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, onLogout, user, theme, toggleTheme }) {
   const menuItems = [
@@ -9,6 +9,11 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, user, theme
     { id: 'cards', label: 'Virtual Cards', icon: CreditCard },
     { id: 'settings', label: 'Settings', icon: UserCog },
   ];
+
+  // If the user has admin role, add the Admin Panel tab
+  if (user && user.is_admin === 1) {
+    menuItems.push({ id: 'admin', label: 'Admin Panel', icon: ShieldCheck });
+  }
 
   return (
     <>
@@ -66,7 +71,9 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, user, theme
               <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
                 {user?.full_name}
               </p>
-              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Sandbox User</p>
+              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                {user?.is_admin === 1 ? 'Administrator' : 'Sandbox Account'}
+              </p>
             </div>
           </div>
 
@@ -157,7 +164,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, user, theme
         right: '10px',
         bottom: '10px',
         height: '64px',
-        display: 'none', // Shown in CSS media query or style overrides
+        display: 'none',
         alignItems: 'center',
         justifyContent: 'space-around',
         borderRadius: '20px',
@@ -186,27 +193,28 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, user, theme
               }}
             >
               <Icon size={20} />
+              <span>{item.label}</span>
             </button>
           );
         })}
-          <button
-            onClick={onLogout}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '4px',
-              border: 'none',
-              background: 'transparent',
-              color: 'var(--expense-red)',
-              cursor: 'pointer',
-              fontSize: '0.65rem'
-            }}
-          >
-            <LogOut size={20} />
-            <span>Out</span>
-          </button>
+        <button
+          onClick={onLogout}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '4px',
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--expense-red)',
+            cursor: 'pointer',
+            fontSize: '0.65rem'
+          }}
+        >
+          <LogOut size={20} />
+          <span>Out</span>
+        </button>
       </nav>
 
       {/* Inline styles to display mobile navigation appropriately based on screen width */}

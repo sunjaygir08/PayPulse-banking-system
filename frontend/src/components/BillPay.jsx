@@ -145,7 +145,7 @@ export default function BillPay({ user, addToast }) {
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Upcoming & Paid Invoices</h2>
             {checkingAccount && (
               <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                Paying from Checking: <strong>${checkingAccount.balance.toFixed(2)}</strong>
+                Paying from Checking: <strong>PKR {checkingAccount.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>
               </span>
             )}
           </div>
@@ -198,7 +198,7 @@ export default function BillPay({ user, addToast }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                       <div style={{ textAlign: 'right' }}>
                         <span style={{ display: 'block', fontSize: '1.15rem', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-                          ${bill.amount.toFixed(2)}
+                          PKR {bill.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </span>
                         <span className="pill" style={{
                           background: isPaid ? 'var(--income-green-glow)' : 'rgba(239, 68, 68, 0.1)',
@@ -249,7 +249,7 @@ export default function BillPay({ user, addToast }) {
               </div>
 
               <div className="form-group">
-                <label>Amount ($)</label>
+                <label>Amount (PKR)</label>
                 <input 
                   type="number" 
                   step="0.01" 

@@ -125,9 +125,14 @@ export default function ProfileSettings({ user, setUser, theme, toggleTheme, add
               alt="Avatar" 
               style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--brand-primary-glow)' }}
             />
-            <div style={{ textAlign: 'center' }}>
+            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <h4 style={{ fontSize: '1.2rem', fontWeight: 700 }}>{user?.full_name}</h4>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{user?.email}</p>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <div>CNIC: <span style={{ fontFamily: 'var(--font-mono)' }}>{user?.cnic || 'N/A'}</span></div>
+                <div>Mobile: <span style={{ fontFamily: 'var(--font-mono)' }}>{user?.mobile || 'N/A'}</span></div>
+                <div>Member Since: <span>{user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</span></div>
+              </div>
             </div>
           </div>
 

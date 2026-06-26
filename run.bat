@@ -81,7 +81,7 @@ echo [INFO] Launching PayPulse FastAPI Server at http://localhost:5000...
 echo.
 
 :: Start server
-start "PayPulse Banking Server" cmd /k ".venv\Scripts\python.exe backend\main.py"
+start "PayPulse Banking Server" cmd /k ".venv\Scripts\python.exe -m backend.main"
 timeout /t 3 /nobreak >nul
 start "" "http://localhost:5000"
 

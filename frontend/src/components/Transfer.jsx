@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, ArrowRightLeft, ShieldCheck, HelpCircle } from 'lucide-react';
+import { Send, ArrowRightLeft, ShieldCheck, Heart, Info } from 'lucide-react';
 
 export default function Transfer({ user, addToast }) {
   const [accounts, setAccounts] = useState([]);
@@ -11,13 +11,15 @@ export default function Transfer({ user, addToast }) {
   const [category, setCategory] = useState('transfer');
   const [note, setNote] = useState('');
   const [securityPin, setSecurityPin] = useState('');
+  const [isExpress, setIsExpress] = useState(true); // default to express/immediate
+  const [beneficiaries, setBeneficiaries] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchAccounts = async () => {
+  const fetchAccountsAndBeneficiaries = async () => {
     try {
-      const res = await fetch('/api/accounts');
-      if (res.ok) {
-        const data = await res.json();
+      const accRes = await fetch('/api/accounts');
+      if (accRes.ok) {
+        const data = await accRes.json();
         setAccounts(data);
         if (data.length > 0) {
           setSourceAccount(data[0].id);
@@ -29,13 +31,19 @@ export default function Transfer({ user, addToast }) {
           }
         }
       }
+
+      const beneRes = await fetch('/api/beneficiaries');
+      if (beneRes.ok) {
+        const beneData = await beneRes.json();
+        setBeneficiaries(beneData || []);
+      }
     } catch (error) {
-      addToast('Failed to load accounts', 'error');
+      addToast('Failed to load transaction data', 'error');
     }
   };
 
   useEffect(() => {
-    fetchAccounts();
+    fetchAccountsAndBeneficiaries();
   }, []);
 
   const handleSourceChange = (e) => {
@@ -47,6 +55,12 @@ export default function Transfer({ user, addToast }) {
       if (alternative) {
         setDestAccount(alternative.id);
       }
+    }
+  };
+
+  const handleBeneSelect = (accNum) => {
+    if (accNum) {
+      setRecipient(accNum);
     }
   };
 
@@ -67,7 +81,13 @@ export default function Transfer({ user, addToast }) {
       return;
     }
 
-    setLoading(false);
+    const srcAccObj = accounts.find(a => String(a.id) === String(sourceAccount));
+    if (srcAccObj && srcAccObj.status === 'frozen') {
+      addToast('Your account is frozen. Transfers are blocked.', 'error');
+      return;
+    }
+
+    setLoading(true);
     try {
       const recipientIdentifier = transferType === 'internal' 
         ? accounts.find(a => String(a.id) === String(destAccount))?.account_number
@@ -82,7 +102,8 @@ export default function Transfer({ user, addToast }) {
           amount: parseFloat(amount),
           category: category,
           note: note,
-          security_pin: securityPin
+          security_pin: securityPin,
+          is_express: isExpress
         })
       });
 
@@ -91,7 +112,11 @@ export default function Transfer({ user, addToast }) {
         throw new Error(data.error || 'Transfer failed');
       }
 
-      addToast('Transfer successfully processed!', 'success');
+      if (data.status === 'queued') {
+        addToast('Transfer request placed in FIFO Queue for admin clearance.', 'info');
+      } else {
+        addToast('Express transfer completed successfully!', 'success');
+      }
       
       // Reset form
       setAmount('');
@@ -100,9 +125,11 @@ export default function Transfer({ user, addToast }) {
       setRecipient('');
       
       // Refresh balances
-      fetchAccounts();
+      fetchAccountsAndBeneficiaries();
     } catch (error) {
       addToast(error.message, 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -110,8 +137,8 @@ export default function Transfer({ user, addToast }) {
     <div style={{ maxWidth: '640px', margin: '0 auto' }}>
       {/* Header */}
       <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>Transfer Funds</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Send money instantly between your accounts or to someone else.</p>
+        <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>Transfer Funds (PKR)</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>Send money instantly (Express) or queue for later approval (Standard).</p>
       </div>
 
       <div className="glass-card" style={{ padding: '40px', borderRadius: '24px' }}>
@@ -149,7 +176,6 @@ export default function Transfer({ user, addToast }) {
             type="button"
             onClick={() => {
               setTransferType('internal');
-              // Set destination to first alternative
               const alt = accounts.find(a => String(a.id) !== String(sourceAccount));
               if (alt) setDestAccount(alt.id);
             }}
@@ -183,7 +209,7 @@ export default function Transfer({ user, addToast }) {
             >
               {accounts.map(acc => (
                 <option key={acc.id} value={acc.id}>
-                  {acc.account_type.toUpperCase()} Account — ${acc.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })} ({acc.account_number})
+                  {acc.account_type.toUpperCase()} Account — Balance: PKR {acc.balance.toLocaleString()} (Avail: PKR {acc.available_balance.toLocaleString()})
                 </option>
               ))}
             </select>
@@ -201,33 +227,105 @@ export default function Transfer({ user, addToast }) {
               >
                 {accounts.filter(a => String(a.id) !== String(sourceAccount)).map(acc => (
                   <option key={acc.id} value={acc.id}>
-                    {acc.account_type.toUpperCase()} Account — ${acc.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })} ({acc.account_number})
+                    {acc.account_type.toUpperCase()} Account — Balance: PKR {acc.balance.toLocaleString()}
                   </option>
                 ))}
               </select>
             </div>
           ) : (
-            <div className="form-group">
-              <label>Recipient Email or Account Number</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="Enter email address or 10-digit account number" 
-                value={recipient}
-                onChange={(e) => setRecipient(e.target.value)}
-                required
-              />
-            </div>
+            <>
+              {/* Beneficiary Quick Select */}
+              {beneficiaries.length > 0 && (
+                <div className="form-group">
+                  <label>Select Saved Beneficiary</label>
+                  <select 
+                    className="form-input"
+                    onChange={(e) => handleBeneSelect(e.target.value)}
+                    defaultValue=""
+                  >
+                    <option value="" disabled>-- Choose a beneficiary --</option>
+                    {beneficiaries.map(b => (
+                      <option key={b.id} value={b.account_number}>
+                        {b.name} ({b.account_number})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="form-group">
+                <label>Recipient Email or Account Number</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  placeholder="Enter email or 10-digit account number" 
+                  value={recipient}
+                  onChange={(e) => setRecipient(e.target.value)}
+                  required
+                />
+              </div>
+            </>
           )}
+
+          {/* Processing Channel Toggle */}
+          <div className="form-group">
+            <label>Transfer Processing Mode</label>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '12px',
+              padding: '6px',
+              background: 'var(--input-bg)',
+              borderRadius: '12px',
+              border: '1px solid var(--card-border)'
+            }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '6px' }}>
+                <input 
+                  type="radio" 
+                  name="processing"
+                  checked={isExpress}
+                  onChange={() => setIsExpress(true)}
+                  style={{ accentColor: 'var(--brand-primary)' }}
+                />
+                <div>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block' }}>Express Transfer</span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Immediate execution</span>
+                </div>
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '6px' }}>
+                <input 
+                  type="radio" 
+                  name="processing"
+                  checked={!isExpress}
+                  onChange={() => setIsExpress(false)}
+                  style={{ accentColor: 'var(--brand-primary)' }}
+                />
+                <div>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block' }}>Standard Queue</span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Admin clearing (FIFO)</span>
+                </div>
+              </label>
+            </div>
+            
+            {!isExpress && (
+              <div style={{ display: 'flex', gap: '8px', background: 'rgba(59,130,246,0.05)', padding: '10px 14px', borderRadius: '8px', marginTop: '10px', alignItems: 'flex-start' }}>
+                <Info size={16} style={{ color: 'var(--brand-primary)', flexShrink: 0, marginTop: '2px' }} />
+                <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                  Selecting Standard Queue deducts the transfer amount from your **Available Balance** immediately to prevent double spending, but your **Current Balance** remains unchanged until the admin processes the Queue request.
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Amount and Category */}
           <div className="form-row">
             <div className="form-group">
-              <label>Amount ($)</label>
+              <label>Amount (PKR)</label>
               <input 
                 type="number" 
                 step="0.01" 
-                min="0.01" 
+                min="1" 
                 className="form-input" 
                 placeholder="0.00" 
                 value={amount}
@@ -257,7 +355,7 @@ export default function Transfer({ user, addToast }) {
             <input 
               type="text" 
               className="form-input" 
-              placeholder="Rent payment, dinner split, etc." 
+              placeholder="e.g. rent split, savings deposit" 
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
@@ -277,7 +375,7 @@ export default function Transfer({ user, addToast }) {
               <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>Security Verification Required</h4>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
-              Please enter your 4-digit Security PIN to authenticate this transaction. This PIN was set up during registration.
+              Please enter your 4-digit Security PIN to authorize this fund movement.
             </p>
             <div className="form-group" style={{ margin: 0 }}>
               <input 
@@ -300,7 +398,7 @@ export default function Transfer({ user, addToast }) {
             style={{ width: '100%', padding: '14px' }}
             disabled={loading}
           >
-            {loading ? 'Processing Transfer...' : 'Confirm and Send Funds'}
+            {loading ? 'Clearing transaction...' : 'Confirm and Send Funds'}
           </button>
         </form>
       </div>

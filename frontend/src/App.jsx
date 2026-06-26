@@ -7,6 +7,7 @@ import Transfer from './components/Transfer';
 import BillPay from './components/BillPay';
 import VirtualCards from './components/VirtualCards';
 import ProfileSettings from './components/ProfileSettings';
+import AdminPanel from './components/AdminPanel';
 
 export default function App() {
   const [activePage, setActivePage] = useState('landing'); // 'landing' | 'login' | 'signup' | 'app'
@@ -86,6 +87,8 @@ export default function App() {
             addToast={addToast} 
           />
         );
+      case 'admin':
+        return <AdminPanel user={user} addToast={addToast} />;
       default:
         return <Dashboard user={user} addToast={addToast} setActiveTab={setActiveTab} />;
     }

@@ -279,7 +279,7 @@ export default function VirtualCards({ user, addToast }) {
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '8px' }}>
                           <span style={{ color: 'var(--text-secondary)' }}>Monthly Limit</span>
                           <span style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
-                            ${card.spent_amount.toFixed(2)} / ${card.limit_amount.toFixed(2)}
+                            PKR {card.spent_amount.toLocaleString()} / PKR {card.limit_amount.toLocaleString()}
                           </span>
                         </div>
                         
@@ -305,7 +305,7 @@ export default function VirtualCards({ user, addToast }) {
                                 onChange={(e) => setLocalLimitVal(e.target.value)}
                                 style={{ flex: 1, accentColor: 'var(--brand-primary)' }}
                               />
-                              <span style={{ fontSize: '0.85rem', fontFamily: 'var(--font-mono)', minWidth: '60px' }}>${localLimitVal}</span>
+                              <span style={{ fontSize: '0.85rem', fontFamily: 'var(--font-mono)', minWidth: '80px' }}>PKR {localLimitVal}</span>
                             </div>
                             <div style={{ display: 'flex', gap: '8px' }}>
                               <button 
@@ -407,7 +407,7 @@ export default function VirtualCards({ user, addToast }) {
               </div>
 
               <div className="form-group">
-                <label>Monthly Spending Limit ($)</label>
+                <label>Monthly Spending Limit (PKR)</label>
                 <input 
                   type="number" 
                   min={100} 

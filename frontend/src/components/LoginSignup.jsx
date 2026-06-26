@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, User, Key, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, Key, Eye, EyeOff, FileText, Phone } from 'lucide-react';
 
 export default function LoginSignup({ initialMode = 'login', onAuthSuccess, onBackToLanding, addToast }) {
   const [mode, setMode] = useState(initialMode);
@@ -7,8 +7,34 @@ export default function LoginSignup({ initialMode = 'login', onAuthSuccess, onBa
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [securityPin, setSecurityPin] = useState('');
+  const [cnic, setCnic] = useState('');
+  const [mobile, setMobile] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const handleCnicChange = (val) => {
+    const clean = val.replace(/\D/g, '');
+    let formatted = '';
+    if (clean.length <= 5) {
+      formatted = clean;
+    } else if (clean.length <= 12) {
+      formatted = `${clean.slice(0, 5)}-${clean.slice(5)}`;
+    } else {
+      formatted = `${clean.slice(0, 5)}-${clean.slice(5, 12)}-${clean.slice(12, 13)}`;
+    }
+    setCnic(formatted);
+  };
+
+  const handleMobileChange = (val) => {
+    const clean = val.replace(/\D/g, '');
+    let formatted = '';
+    if (clean.length <= 4) {
+      formatted = clean;
+    } else {
+      formatted = `${clean.slice(0, 4)}-${clean.slice(4, 11)}`;
+    }
+    setMobile(formatted);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,7 +43,7 @@ export default function LoginSignup({ initialMode = 'login', onAuthSuccess, onBa
     const url = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
     const body = mode === 'login' 
       ? { email, password }
-      : { email, password, full_name: fullName, security_pin: securityPin };
+      : { email, password, full_name: fullName, security_pin: securityPin, cnic, mobile };
 
     try {
       const response = await fetch(url, {
@@ -32,7 +58,7 @@ export default function LoginSignup({ initialMode = 'login', onAuthSuccess, onBa
       }
 
       addToast(
-        mode === 'login' ? 'Welcome back to PayPulse!' : 'Account created successfully! Welcome to PayPulse.',
+        mode === 'login' ? 'Welcome back to PayPulse PKR Sandbox!' : 'Account created successfully! Welcome to PayPulse.',
         'success'
       );
       
@@ -76,27 +102,63 @@ export default function LoginSignup({ initialMode = 'login', onAuthSuccess, onBa
             {mode === 'login' ? 'Sign in to PayPulse' : 'Create your account'}
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '6px' }}>
-            {mode === 'login' ? 'Access your digital banking sandbox' : 'Open checking and savings demo accounts instantly'}
+            {mode === 'login' ? 'Access your PKR DSA banking sandbox' : 'Provide your Pakistani credentials to register'}
           </p>
         </div>
 
         <form onSubmit={handleSubmit}>
           {mode === 'signup' && (
-            <div className="form-group">
-              <label>Full Name</label>
-              <div style={{ position: 'relative' }}>
-                <User size={18} style={{ position: 'absolute', left: '14px', top: '15px', color: 'var(--text-muted)' }} />
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder="John Doe" 
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  style={{ width: '100%', paddingLeft: '44px' }}
-                  required
-                />
+            <>
+              <div className="form-group">
+                <label>Full Name</label>
+                <div style={{ position: 'relative' }}>
+                  <User size={18} style={{ position: 'absolute', left: '14px', top: '15px', color: 'var(--text-muted)' }} />
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    placeholder="John Doe" 
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    style={{ width: '100%', paddingLeft: '44px' }}
+                    required
+                  />
+                </div>
               </div>
-            </div>
+
+              <div className="form-group">
+                <label>CNIC (National Identity Card)</label>
+                <div style={{ position: 'relative' }}>
+                  <FileText size={18} style={{ position: 'absolute', left: '14px', top: '15px', color: 'var(--text-muted)' }} />
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    placeholder="42101-1234567-1" 
+                    maxLength={15}
+                    value={cnic}
+                    onChange={(e) => handleCnicChange(e.target.value)}
+                    style={{ width: '100%', paddingLeft: '44px', fontFamily: 'var(--font-mono)' }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Mobile Number</label>
+                <div style={{ position: 'relative' }}>
+                  <Phone size={18} style={{ position: 'absolute', left: '14px', top: '15px', color: 'var(--text-muted)' }} />
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    placeholder="0300-1234567" 
+                    maxLength={12}
+                    value={mobile}
+                    onChange={(e) => handleMobileChange(e.target.value)}
+                    style={{ width: '100%', paddingLeft: '44px', fontFamily: 'var(--font-mono)' }}
+                    required
+                  />
+                </div>
+              </div>
+            </>
           )}
 
           <div className="form-group">
