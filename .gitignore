@@ -1,0 +1,25 @@
+# Python Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local database
+banking.db
+banking.db-journal
+
+# Compiled React build (build artifact produced by run.bat)
+frontend/dist/
+
+# Node dependencies
+frontend/node_modules/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
