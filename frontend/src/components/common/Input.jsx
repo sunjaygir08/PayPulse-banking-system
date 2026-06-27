@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function Input({
   label,
@@ -14,7 +14,14 @@ export default function Input({
   className = '',
   ...props
 }) {
-  const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+  // Generate a stable random ID once on mount (not on every render).
+  // Using Math.random() directly in the render body created a new ID every
+  // re-render, which caused React to unmount/remount the <label>/<input> pair
+  // on every keystroke — breaking controlled inputs and crashing the Settings page.
+  const [stableId] = useState(
+    () => id || `input-${Math.random().toString(36).substr(2, 9)}`
+  );
+  const inputId = id || stableId;
 
   return (
     <div className={`form-group ${className}`} style={{ marginBottom: '18px', display: 'flex', flexDirection: 'column', gap: '6px' }}>

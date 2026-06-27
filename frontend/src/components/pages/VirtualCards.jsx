@@ -28,12 +28,15 @@ export default function VirtualCards({ user, addToast }) {
   const fetchCards = async () => {
     try {
       const res = await fetch('/api/cards');
-      if (res.ok) {
+      const ct = res.headers.get('content-type') || '';
+      if (res.ok && ct.includes('application/json')) {
         const data = await res.json();
         setCards(data.cards || []);
+      } else if (!res.ok) {
+        addToast('Could not load virtual cards.', 'error');
       }
     } catch (error) {
-      addToast('Failed to load virtual cards.', 'error');
+      addToast('Failed to connect to the server.', 'error');
     } finally {
       setLoading(false);
     }
@@ -52,9 +55,12 @@ export default function VirtualCards({ user, addToast }) {
         body: JSON.stringify({ card_id: card.id, status: newStatus })
       });
 
+      const ct = response.headers.get('content-type') || '';
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to update card status');
+        const msg = ct.includes('application/json')
+          ? (await response.json()).error
+          : 'Failed to update card status';
+        throw new Error(msg || 'Failed to update card status');
       }
 
       addToast(
@@ -76,9 +82,12 @@ export default function VirtualCards({ user, addToast }) {
         body: JSON.stringify({ card_id: cardId, limit_amount: parseFloat(localLimitVal) })
       });
 
+      const ct = response.headers.get('content-type') || '';
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to update card limit');
+        const msg = ct.includes('application/json')
+          ? (await response.json()).error
+          : 'Failed to update card limit';
+        throw new Error(msg || 'Failed to update card limit');
       }
 
       addToast('Card spending limit updated.', 'success');
@@ -105,10 +114,16 @@ export default function VirtualCards({ user, addToast }) {
         })
       });
 
+      // Always parse JSON safely — check Content-Type before calling .json()
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('Server returned an unexpected response. Ensure the Flask backend is running.');
+      }
+
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to create card');
 
-      addToast('New virtual card created.', 'success');
+      addToast('New virtual card created successfully.', 'success');
       setShowAddForm(false);
       setCardLimit(5000);
       fetchCards();
@@ -118,6 +133,7 @@ export default function VirtualCards({ user, addToast }) {
       setActionLoading(false);
     }
   };
+
 
   const handleCopyCardNum = (cardId, num) => {
     navigator.clipboard.writeText(num);
