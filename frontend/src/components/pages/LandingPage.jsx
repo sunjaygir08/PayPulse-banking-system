@@ -98,7 +98,7 @@ export default function LandingPage({ onNavigate, theme, toggleTheme }) {
               marginBottom: '20px'
             }}
           >
-            <ShieldCheck size={14} /> State Bank of Pakistan Compliant
+            <ShieldCheck size={14} /> Pakistan's Banking System
           </div>
           <h1 
             style={{
