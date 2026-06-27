@@ -1,6 +1,6 @@
 # PayPulse Banking System
 
-PayPulse is a professional digital banking platform built with a **React + Vite** frontend and a **Python Flask** backend. It demonstrates key Data Structures & Algorithms (DSA) concepts in an academic context while presenting a premium enterprise-grade visual aesthetic.
+PayPulse is a professional digital banking platform built with a **React + Vite** frontend and a **Python Flask** backend. It demonstrates key Data Structures & Algorithms (DSA) concepts.
 
 > **Single entry point:** `http://localhost:5000` — Flask serves both the REST API and the built React SPA from the same port.
 
