@@ -159,10 +159,7 @@ export default function App() {
             theme={theme}
             toggleTheme={toggleTheme}
           />
-          <main 
-            className="main-content"
-            style={{ marginLeft: 'var(--sidebar-width)' }}
-          >
+          <main className="main-content">
             {renderTabContent()}
           </main>
         </div>

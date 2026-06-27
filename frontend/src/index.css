@@ -182,6 +182,17 @@ body {
   opacity: 0.9;
 }
 
+.btn-text {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--brand-primary);
+  padding: 0;
+}
+.btn-text:hover {
+  text-decoration: underline;
+  background-color: transparent;
+}
+
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -495,7 +506,10 @@ body {
 .main-content {
   flex-grow: 1;
   padding: 40px;
-  max-width: calc(100vw - var(--sidebar-width));
+  /* Use margin-left equal to the sidebar so content sits beside it without
+     a conflicting max-width calculation that clips content. */
+  margin-left: var(--sidebar-width);
+  min-width: 0;       /* Prevent flex item from overflowing */
   overflow-y: auto;
 }
 
