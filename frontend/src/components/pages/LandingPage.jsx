@@ -173,7 +173,7 @@ export default function LandingPage({ onNavigate, theme, toggleTheme }) {
                 <h3 style={{ fontSize: '1.6rem', fontWeight: 800, margin: '2px 0 0 0' }}>PKR 142,500.00</h3>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', opacity: 0.9 }}>
-                <span>Jane Doe</span>
+                <span>Sunjay Gir</span>
                 <span>CID-892013</span>
               </div>
             </div>
